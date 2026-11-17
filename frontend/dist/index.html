@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ah系统优化工具箱</title>
+</head>
+<body>
+  <!--
+    Wails v2 的 assetserver 在启动时要求 go:embed 的资产 FS 里存在 index.html，
+    否则 wails.Run 直接返回错误（GUI 子系统无控制台，表现为双击无反应）。
+    实际页面由 main.go 的 serveDesignPage 中间件返回 design/ui-prototype.html；
+    这个文件只负责让 Wails 通过启动校验，不会被用户看到。
+  -->
+  <p>正在加载 ah系统优化工具箱…</p>
+</body>
+</html>

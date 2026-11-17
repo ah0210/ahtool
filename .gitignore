@@ -1,0 +1,23 @@
+# 构建产物
+bin/
+*.exe
+*.syso
+!rsrc.syso
+_devtools/
+_toolchain/
+_gocache/
+_gotmp/
+_gopath/
+
+# 本地日志与临时文件
+*.log
+*.tmp
+Thumbs.db
+.DS_Store
+
+# 归档（保留在本地即可，按需提交）
+# _archive/
+
+# 编辑器
+.idea/
+.vscode/
