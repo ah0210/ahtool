@@ -4,7 +4,7 @@
 系统优化、启动项管理、磁盘空间分析、驱动导出、蓝屏转储解析、硬件信息读取，以及
 36 个系统原生工具。
 
-- 版本：**v1.0.0**（二次开发基线，基于原项目 v1.1.0，GPLv3）
+- 版本：**v1.0.1**（二次开发基线，基于原项目 v1.1.0，GPLv3）
 - 平台：Windows 10 / 11 · amd64
 - 形态：单文件 exe，免安装，启动即请求管理员权限
 - 前端：原生 HTML/CSS/JS，`go:embed` 嵌入，无 Node 构建步骤
@@ -50,8 +50,8 @@
 快速构建：
 
 ```bat
-build.cmd            :: bin\ahtool_v1.0.0-dev.exe
-build.cmd release    :: bin\ahtool_v1.0.0.exe
+build.cmd            :: bin\ahtool_v1.0.1-dev.exe
+build.cmd release    :: bin\ahtool_v1.0.1.exe
 ```
 
 或 PowerShell 7：

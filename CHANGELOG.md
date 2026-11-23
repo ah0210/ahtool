@@ -1,5 +1,17 @@
 # 更新记录 / Changelog
 
+## v1.0.1（2026-11-23）
+
+构建与发布流程工程化，不改变功能行为。
+
+### CI / 发布
+- `build.yml` 增加 gofmt / vet / test 三道质量门禁、固定资源校验和、最小权限与并发控制；版本号统一由 `APPVER` 注入。
+- 新增 `release.yml`：推送 `v*` tag 时自动构建并发布到 GitHub Releases，版本号取自 tag，产物附 SHA256。
+- 版本号由 v1.0.0 升至 v1.0.1（真相源：各构建脚本的 `APPVER`）。
+
+### 测试修复
+- 修复 GitHub Actions（Windows runner）环境下 7 项测试失败：`normalizeDriveLetter` 带路径输入、空间删除测试补 MFT 会话白名单、风险分级测试去除本机文件依赖、工具 golden 基线同步。
+
 ## v1.0.0（2026-11-12）
 
 二次开发基线版本。基于原项目 v1.1.0（GPLv3）整理，不包含原作者服务端绑定。

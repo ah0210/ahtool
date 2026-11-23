@@ -1,6 +1,6 @@
 package main
 
-// ahtool v1.0.0 入口（Wails）。
+// ahtool v1.0.1 入口（Wails）。
 // 带 -cli 参数时不启窗口，直接跑命令行自检（真机扫描，打印分组 / 去重合计 / 耗时），排障用。
 
 import (
@@ -27,7 +27,7 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 
-// ── 前端真源直接嵌进来（v1.0.0）────────────────────────────────────────────
+// ── 前端真源直接嵌进来（v1.0.1）────────────────────────────────────────────
 // design/ui-prototype.html 是重构 1.1 时的前端本体（浏览器直开就是设计预览），
 // frontend/dist/index.html 只是它的副本。两份手工维护必然分叉 —— 2026-10-09 那次
 // 「68.58 GB 假数据」就有这个成分：修好的补丁只打在 dist 里，真源里没有；而站长看到的是 exe，
@@ -138,8 +138,8 @@ var setpanelCSS []byte
 
 // designPage 把真源页面的标题换成软件名（原型文件里保留「UI 原型」标题，便于浏览器预览辨认）。
 var designPage = bytes.Replace(pageHTML,
-	[]byte("<title>ah系统优化工具箱 v1.0.0 · UI 原型</title>"),
-	[]byte("<title>ah系统优化工具箱 v1.0.0</title>"), 1)
+	[]byte("<title>ah系统优化工具箱 v1.0.1 · UI 原型</title>"),
+	[]byte("<title>ah系统优化工具箱 v1.0.1</title>"), 1)
 
 // serveDesignPage 让 "/" 与 "/index.html" 直接返回真源页面。
 // 必须挂在 Wails 资产服务器的 Middleware 里：Wails 会在它之外再包一层，
@@ -269,11 +269,11 @@ func noCache(next http.Handler) http.Handler {
 }
 
 /*
-devPage 开发/验收用：ahtool_v1.0.0.exe -devpage <页面id> 启动后直接跳到那一页。
+devPage 开发/验收用：ahtool_v1.0.1.exe -devpage <页面id> 启动后直接跳到那一页。
 
 	为什么需要：GUI 截图验收如果靠"点侧栏坐标"，会被侧栏滚动位置影响（同一坐标这次点到这里、
 	下次点到别处，2026-10-10 实测踩过两次）。有了这个开关，验证任意一页都是确定性的：
-	    bin\ahtool_v1.0.0.exe -devpage driver   然后截图即可。
+	    bin\ahtool_v1.0.1.exe -devpage driver   然后截图即可。
 	只接受简单的页面 id（字母数字连字符下划线），拼进 JS 前还会再过滤一次。
 */
 var devPage string
@@ -283,7 +283,7 @@ devTab 本机配置页要逐个 Tab 截图验收（2026-10-10 加）。
 
 	这一页有 8 个 Tab，Tab 切换是局部的（不整页重绘），
 	用「启动后点某个坐标」或注入脚本切都靠不住 —— 时序一差就截到空白页。
-	做成确定性开关：bin\ahtool_v1.0.0.exe -devpage pcinfo -devtab disk
+	做成确定性开关：bin\ahtool_v1.0.1.exe -devpage pcinfo -devtab disk
 	它在 go('pcinfo') 之后、稳定 800ms 才点目标 Tab，截图必然落在目标 Tab 上。
 */
 var devTab string
@@ -293,8 +293,8 @@ devMeasure 开发期测量浮层开关（2026-10-10 加）。
 
 	为什么要单独一个开关：本机配置页要求「一屏装完」，验收时想读到精确的
 	溢出像素；但给用户看的截图不该带那块红框。所以拆开：
-	  bin\ahtool_v1.0.0.exe -devpage pcinfo -devtab disk              → 干净截图
-	  bin\ahtool_v1.0.0.exe -devpage pcinfo -devtab disk -devmeasure  → 带读数
+	  bin\ahtool_v1.0.1.exe -devpage pcinfo -devtab disk              → 干净截图
+	  bin\ahtool_v1.0.1.exe -devpage pcinfo -devtab disk -devmeasure  → 带读数
 */
 var devMeasure = false
 
@@ -415,10 +415,10 @@ func logDev(s string) {
 
 	唯一真源 = build.ps1 / build.cmd 里的 APPVER，通过 -X main.appVersion 注入；
 	buildDate 由同一个脚本按构建当天写入。前端只读 GetAboutInfo()，不再硬编码版本号。
-	日常构建不带 -X 时显示 1.0.0-dev / unknown。
+	日常构建不带 -X 时显示 1.0.1-dev / unknown。
 */
 var (
-	appVersion = "1.0.0-dev"
+	appVersion = "1.0.1-dev"
 	buildDate  = "unknown"
 	buildNum   = "" // 构建号 YYYYMMDD.N；只有发布构建才注入，日常构建为空
 )
@@ -495,9 +495,9 @@ func main() {
 	}
 
 	app := NewApp()
-	startupLog("calling wails.Run title=%q", "ah系统优化工具箱 v1.0.0")
+	startupLog("calling wails.Run title=%q", "ah系统优化工具箱 v1.0.1")
 	err := wails.Run(&options.App{
-		Title:     "ah系统优化工具箱 v1.0.0",
+		Title:     "ah系统优化工具箱 v1.0.1",
 		Width:     1220,
 		Height:    780,
 		MinWidth:  1020,
@@ -532,8 +532,8 @@ func main() {
 
 // runCliSelfCheck 命令行自检：与 GUI 共用同一套后端，打印真机扫描结果。
 //
-//	ahtool_v1.0.0.exe -cli           全量自检（含 deepjunk 全盘遍历，约十几秒到几分钟）
-//	ahtool_v1.0.0.exe -cli -nofull   跳过 deepjunk，快速迭代用
+//	ahtool_v1.0.1.exe -cli           全量自检（含 deepjunk 全盘遍历，约十几秒到几分钟）
+//	ahtool_v1.0.1.exe -cli -nofull   跳过 deepjunk，快速迭代用
 //
 // 另把每项明细写到 %TEMP%\ahtool_cli_items.tsv，便于逐项对照"总量是哪一项抬起来的"。
 func runCliSelfCheck(args []string) {

@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ah系统优化工具箱 v1.0.0 · UI 原型</title>
+<title>ah系统优化工具箱 v1.0.1 · UI 原型</title>
 <style>
 /* ============================================================
-   ahtool v1.0.0  设计语言：石墨玻璃 Graphite Glass
+   ahtool v1.0.1  设计语言：石墨玻璃 Graphite Glass
    分层：L0 底 / L1 玻璃卡 / L2 浮层
    规则：颜色只用于「状态 + 数据」，骨架走中性灰阶 + 高对比白 CTA
    ============================================================ */
@@ -1381,7 +1381,7 @@ html[data-motion="off"] .reveal{opacity:1 !important; transform:none !important}
 <div id="splash">
   <div class="splash-mark"><span class="splash-ring"></span><span class="splash-ring2"></span><img class="splash-logo" alt="" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNTYiIGhlaWdodD0iMjU2Ij48cmVjdCB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgcng9IjUyIiBmaWxsPSIjMEY0Q0ZGIi8+PHRleHQgeD0iMTI4IiB5PSIxNjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJTZWdvZSBVSSxBcmlhbCIgZm9udC1zaXplPSIxMTIiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiNmZmYiPkFIPC90ZXh0Pjwvc3ZnPg=="></div>
   <div class="splash-name">ah系统优化工具箱</div>
-  <div class="splash-ver">v1.0.0</div>
+  <div class="splash-ver">v1.0.1</div>
   <div class="splash-bar"><i></i></div>
   <div class="splash-tip">正在准备…</div>
 </div>
@@ -1394,7 +1394,7 @@ html[data-motion="off"] .reveal{opacity:1 !important; transform:none !important}
       <div>
         <div class="brand-name">ah系统优化工具箱</div>
       </div>
-      <span class="brand-ver" id="brandVer">v1.0.0</span>
+      <span class="brand-ver" id="brandVer">v1.0.1</span>
     </div>
     <div class="tb-spacer"></div>
     <div class="tb-search" id="cmdOpen">
@@ -3127,9 +3127,9 @@ function syncHeroCta(){
 function escHome(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){
   return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
 });}
-/* 版本号显示。后端 GetAboutInfo().version 已经是「v1.0.0」（svcAppVer = "v" + appVersion），
+/* 版本号显示。后端 GetAboutInfo().version 已经是「v1.0.1」（svcAppVer = "v" + appVersion），
    而远端清单里的 latest 可能带 v 也可能不带 —— 以前一律在前面硬拼一个 'v'，
-   于是就有了「vv1.0.0」这种。这里统一：本来就以 v 开头的不再补。
+   于是就有了「vv1.0.1」这种。这里统一：本来就以 v 开头的不再补。
    ⚠️ 前端不要再把版本号截掉前导 v 来比较大小，那两段语义不同（2026-10-13 修）。 */
 function verLabel(s){
   const t = String(s == null ? '' : s).trim();

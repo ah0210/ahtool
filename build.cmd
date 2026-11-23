@@ -3,8 +3,8 @@ rem ============================================================
 rem  ah系统优化工具箱（ahtool）- Windows build script
 rem
 rem  Usage:
-rem    build.cmd            -> bin\ahtool_v1.0.0-dev.exe
-rem    build.cmd release    -> bin\ahtool_v1.0.0.exe
+rem    build.cmd            -> bin\ahtool_v1.0.1-dev.exe
+rem    build.cmd release    -> bin\ahtool_v1.0.1.exe
 rem
 rem  Requirements: Go 1.24+ on PATH, or a local toolchain at
 rem  _toolchain\go\bin\go.exe. Modules are fetched from GOPROXY
@@ -17,7 +17,7 @@ setlocal
 cd /d "%~dp0"
 
 set "ROOT=%~dp0"
-set "APPVER=1.0.0"
+set "APPVER=1.0.1"
 set "GOEXE=go"
 if exist "%ROOT%_toolchain\go\bin\go.exe" set "GOEXE=%ROOT%_toolchain\go\bin\go.exe"
 

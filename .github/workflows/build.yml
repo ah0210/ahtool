@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  APPVER: 1.0.0
+  APPVER: 1.0.1
   GOOS: windows
   GOARCH: amd64
   CGO_ENABLED: 0

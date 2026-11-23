@@ -3,7 +3,7 @@
 # 用法：./build.sh [release]
 set -euo pipefail
 cd "$(dirname "$0")"
-APPVER=1.0.0
+APPVER=1.0.1
 BUILDDATE=$(date +%F)
 GO=${GO:-go}
 if [ -x _toolchain/go/bin/go ]; then GO=_toolchain/go/bin/go; fi

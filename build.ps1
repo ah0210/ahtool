@@ -4,7 +4,7 @@ param([switch]$Release)
 
 $ErrorActionPreference = 'Stop'
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
-$AppVer = '1.0.0'
+$AppVer = '1.0.1'
 $BuildDate = Get-Date -Format 'yyyy-MM-dd'
 $Go = if (Test-Path "$Root\_toolchain\go\bin\go.exe") { "$Root\_toolchain\go\bin\go.exe" } else { 'go' }
 $Version = if ($Release) { $AppVer } else { "$AppVer-dev" }
