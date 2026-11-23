@@ -16,9 +16,74 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"unsafe"
 )
+
+// registerTempFilesForDelete 把本测试造出的文件注册进「本次扫描」的 MFT 索引。
+// SpaceDelete 在 2026-11-02 加了会话级白名单（只删本次扫描索引里真实存在的
+// 文件），测试造的临时文件不在任何真实扫描结果里，必须先补一个最小索引，
+// 否则全新进程里必然报「尚未扫描」。开发者本机若残留 spaceIdx 会碰巧通过，
+// CI 每次全新进程则暴露 —— 这里显式构造，保证测试可重复。
+func registerTempFilesForDelete(t *testing.T, paths ...string) {
+	t.Helper()
+	if len(paths) == 0 {
+		t.Fatal("registerTempFilesForDelete: 没有路径")
+	}
+	drive := strings.ToUpper(paths[0][:1])
+	idx := &mftIndex{
+		drive: drive,
+		nodes: map[uint64]*spNode{frRoot: {name: drive + ":", parent: frRoot, dir: true}},
+		kids:  map[uint64][]uint64{},
+	}
+	var next uint64 = 100
+	ensureDir := func(parent uint64, name string) uint64 {
+		for _, k := range idx.kids[parent] {
+			n := idx.nodes[k]
+			if n != nil && n.dir && strings.EqualFold(n.name, name) {
+				return k
+			}
+		}
+		id := next
+		next++
+		idx.nodes[id] = &spNode{name: name, parent: parent, dir: true}
+		idx.kids[parent] = append(idx.kids[parent], id)
+		return id
+	}
+	for _, p := range paths {
+		up := strings.ToUpper(p)
+		if len(up) < 3 || up[1] != ':' || !strings.EqualFold(up[:1], drive) {
+			t.Fatalf("路径不是 %s 盘: %s", drive, p)
+		}
+		parts := strings.Split(strings.Trim(p[3:], `\`), `\`)
+		cur := frRoot
+		for _, seg := range parts[:len(parts)-1] {
+			if seg != "" {
+				cur = ensureDir(cur, seg)
+			}
+		}
+		base := parts[len(parts)-1]
+		id := next
+		next++
+		var size int64
+		if info, err := os.Stat(p); err == nil {
+			size = info.Size()
+		}
+		// 系统保护类断言用的纯路径可能并不存在，白名单只查索引不查磁盘，
+		// size 为 0 不影响判定。
+		idx.nodes[id] = &spNode{name: base, parent: cur, size: size}
+		idx.kids[cur] = append(idx.kids[cur], id)
+	}
+	spaceMu.Lock()
+	spaceIdx = idx
+	spaceMu.Unlock()
+	t.Cleanup(func() {
+		spaceMu.Lock()
+		spaceIdx = nil
+		spaceMu.Unlock()
+	})
+}
 
 func TestSpaceDeleteReallyDeletes(t *testing.T) {
 	dir := t.TempDir()
@@ -30,6 +95,7 @@ func TestSpaceDeleteReallyDeletes(t *testing.T) {
 	if err := os.WriteFile(p, data, 0o644); err != nil {
 		t.Fatalf("造测试文件失败: %v", err)
 	}
+	registerTempFilesForDelete(t, p)
 
 	var a App
 	res := a.SpaceDelete([]string{p})
@@ -58,6 +124,7 @@ func TestSpaceDeleteMultiple(t *testing.T) {
 		}
 		paths = append(paths, p)
 	}
+	registerTempFilesForDelete(t, paths...)
 	var a App
 	res := a.SpaceDelete(paths)
 	if len(res) != len(paths) {
@@ -87,6 +154,7 @@ func TestSpaceDeleteReadOnlyAndHidden(t *testing.T) {
 	if err := os.Chmod(p, 0o444); err != nil { // Windows 上等价于 FILE_ATTRIBUTE_READONLY
 		t.Fatalf("设置只读失败: %v", err)
 	}
+	registerTempFilesForDelete(t, p)
 	var a App
 	res := a.SpaceDelete([]string{p})
 	if !res[0].Ok {
@@ -97,8 +165,10 @@ func TestSpaceDeleteReadOnlyAndHidden(t *testing.T) {
 	}
 }
 
-// 目录分析页会删整个目录，RemoveAll 兜底必须能收掉整棵树（含只读子文件）。
-func TestSpaceDeleteDirectory(t *testing.T) {
+// 产品决策（2026-11-02 四次修复）：SpaceDelete 只允许删文件，绝不接受目录 ——
+// 目录整树递归误删面太大，UI 也不提供目录删除；spaceDeleteFile 与 MFT 白名单
+// 两处都会拒绝目录。这条守卫确保谁都别把目录删除能力加回来。
+func TestSpaceDeleteRejectsDirectory(t *testing.T) {
 	dir := t.TempDir()
 	sub := filepath.Join(dir, "待删除目录")
 	if err := os.MkdirAll(filepath.Join(sub, "内层"), 0o755); err != nil {
@@ -109,12 +179,16 @@ func TestSpaceDeleteDirectory(t *testing.T) {
 		t.Fatalf("造测试文件失败: %v", err)
 	}
 	var a App
+	// 即使没有扫描会话，目录也必须被拒绝且原样保留。
 	res := a.SpaceDelete([]string{sub})
-	if !res[0].Ok {
-		t.Fatalf("目录应能被删掉，实际失败: %s", res[0].Err)
+	if len(res) != 1 || res[0].Ok {
+		t.Fatalf("目录必须被拒绝，实际: %+v", res)
 	}
-	if _, err := os.Stat(sub); !os.IsNotExist(err) {
-		t.Fatalf("返回成功但目录仍存在: %v", err)
+	if _, err := os.Stat(sub); err != nil {
+		t.Fatalf("被拒绝后目录不应消失: %v", err)
+	}
+	if _, err := os.Stat(f); err != nil {
+		t.Fatalf("被拒绝后目录内文件不应消失: %v", err)
 	}
 }
 

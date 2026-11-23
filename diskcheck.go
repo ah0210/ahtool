@@ -70,7 +70,11 @@ type DiskHealthPoint struct {
 
 func normalizeDriveLetter(d string) (string, bool) {
 	d = strings.ToUpper(strings.TrimSpace(d))
-	d = strings.TrimSuffix(d, `\`)
+	// 只认盘符：允许 "C:" / "c:" / "D" / `E:\` / `C:\任意路径`，
+	// 出现分隔符就截断，只取前面的盘符（前端可能传完整路径过来）。
+	if i := strings.IndexAny(d, `\/`); i >= 0 {
+		d = d[:i]
+	}
 	if len(d) == 1 && d[0] >= 'A' && d[0] <= 'Z' {
 		d += ":"
 	}

@@ -56,7 +56,10 @@ func TestRiskProgramComponentsHigh(t *testing.T) {
 		`D:\DingDing\main\current_new\plugins\dtwebview\libcef.dll`,
 		`D:\DingDing\main\current\plugins\dtwebview\libcef.dll`,
 		`D:\XRK\AweSun\AweSun.exe`,
-		`C:\Program Files\Common Files\System\msadc\msadco.dll`,
+		// 用必然不存在的纯路径：若写真实存在的 msadco.dll，GitHub runner 上它受
+		// TrustedInstaller 保护，动态探测会把级别抬成 block，导致本组「纯路径静态
+		// 判定」测试随本机文件系统状态漂移。这里只验证安装目录的静态 high 规则。
+		`C:\Program Files\Common Files\System\msadc\nonexistent-msadco.dll`,
 		`D:\proj\node_modules\pkg\index.node`,
 		`C:\Users\Me\AppData\Local\Programs\Python\python.exe`,
 	} {
@@ -195,6 +198,9 @@ func TestChooseKeepPrefersNewerVersion(t *testing.T) {
 func TestSpaceDeleteRiskGate(t *testing.T) {
 	var a App
 	blocked := `C:\Windows\System32\drivers\never-delete.sys`
+	// SpaceDelete 先查 MFT 会话白名单再判风险，测试需先把路径注册进索引，
+	// 否则会先撞「尚未扫描」，验证不到风险闸门。（纯路径不存在也可入索引）
+	registerTempFilesForDelete(t, blocked)
 	res := a.SpaceDelete([]string{blocked})
 	if len(res) != 1 || res[0].Ok || !strings.Contains(res[0].Err, "已阻止删除") {
 		t.Fatalf("系统文件必须被后端拒绝: %+v", res)
@@ -213,6 +219,8 @@ func TestSpaceDeleteRiskGate(t *testing.T) {
 	if r := riskOf(f); r.Level != riskHigh {
 		t.Fatalf("测试前提不成立：该文件应判 high，实际 %s", r.Level)
 	}
+	// 同一测试内第二次删除，重新注册当前文件（覆盖上一条的索引）
+	registerTempFilesForDelete(t, f)
 	again := a.SpaceDelete([]string{f})
 	if again[0].Ok {
 		t.Fatal("high 文件不该被删掉")

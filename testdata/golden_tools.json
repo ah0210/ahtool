@@ -1530,71 +1530,15 @@
     "timeout": 3600,
     "reboot": false,
     "recommend": false,
-    "impl": "steps",
+    "impl": "custom",
     "steps": {
-      "": [
-        {
-          "exe": "defrag.exe",
-          "args": [
-            "C:",
-            "/O"
-          ]
-        }
-      ],
-      "8080": [
-        {
-          "exe": "defrag.exe",
-          "args": [
-            "8080:",
-            "/O"
-          ]
-        }
-      ],
-      "C:": [
-        {
-          "exe": "defrag.exe",
-          "args": [
-            "C:",
-            "/O"
-          ]
-        }
-      ],
-      "D:": [
-        {
-          "exe": "defrag.exe",
-          "args": [
-            "D:",
-            "/O"
-          ]
-        }
-      ],
-      "s:60": [
-        {
-          "exe": "defrag.exe",
-          "args": [
-            "s:60:",
-            "/O"
-          ]
-        }
-      ],
-      "taskmgr": [
-        {
-          "exe": "defrag.exe",
-          "args": [
-            "taskmgr:",
-            "/O"
-          ]
-        }
-      ],
-      "www.baidu.com": [
-        {
-          "exe": "defrag.exe",
-          "args": [
-            "www.baidu.com:",
-            "/O"
-          ]
-        }
-      ]
+      "": [],
+      "8080": [],
+      "C:": [],
+      "D:": [],
+      "s:60": [],
+      "taskmgr": [],
+      "www.baidu.com": []
     }
   },
   {
