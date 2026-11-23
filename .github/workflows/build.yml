@@ -5,21 +5,66 @@ on:
     branches: [main, master]
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  APPVER: 1.0.0
+  GOOS: windows
+  GOARCH: amd64
+  CGO_ENABLED: 0
+
 jobs:
   windows:
     runs-on: windows-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version: '1.26.x'
           cache: true
-      - name: Build
-        run: go build -buildvcs=false -trimpath -tags desktop,production -ldflags "-s -w -H windowsgui -X main.appVersion=1.0.0 -X main.buildDate=ci" -o bin/ahtool_v1.0.0.exe .
+
+      - name: Verify fixed assets checksum
+        shell: bash
+        run: |
+          grep -v 'ahtool_v.*\.exe' SHA256SUMS.txt | tr -d '\r' | sha256sum -c -
+
+      - name: Check gofmt
+        shell: bash
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "以下文件需要 gofmt："
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: Vet
+        run: go vet ./...
+
       - name: Test (safe set; manual tests are excluded by build tag)
         run: go test ./...
+
+      - name: Prepare bin directory
+        shell: bash
+        run: mkdir -p bin
+
+      - name: Build
+        run: go build -buildvcs=false -trimpath -tags desktop,production -ldflags "-s -w -H windowsgui -X main.appVersion=${{ env.APPVER }} -X main.buildDate=ci" -o bin/ahtool_v${{ env.APPVER }}.exe .
+
+      - name: Generate SHA256 for build artifact
+        shell: bash
+        run: cd bin && sha256sum ahtool_v${{ env.APPVER }}.exe > ahtool_v${{ env.APPVER }}.exe.sha256
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ahtool-windows-amd64
-          path: bin/ahtool_v1.0.0.exe
+          path: |
+            bin/ahtool_v${{ env.APPVER }}.exe
+            bin/ahtool_v${{ env.APPVER }}.exe.sha256

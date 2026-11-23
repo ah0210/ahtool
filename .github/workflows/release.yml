@@ -1,0 +1,69 @@
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+env:
+  GOOS: windows
+  GOARCH: amd64
+  CGO_ENABLED: 0
+
+jobs:
+  release:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.x'
+          cache: true
+
+      - name: Resolve version from tag
+        id: ver
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VER="${TAG#v}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "ver=$VER" >> "$GITHUB_OUTPUT"
+          echo "发布版本：$VER（tag: $TAG）"
+
+      - name: Prepare bin directory
+        shell: bash
+        run: mkdir -p bin
+
+      - name: Build
+        shell: bash
+        run: |
+          go build -buildvcs=false -trimpath -tags desktop,production \
+            -ldflags "-s -w -H windowsgui -X main.appVersion=${{ steps.ver.outputs.ver }} -X main.buildDate=$(date +%F)" \
+            -o "bin/ahtool_v${{ steps.ver.outputs.ver }}.exe" .
+
+      - name: Generate SHA256
+        shell: bash
+        run: |
+          cd bin
+          sha256sum "ahtool_v${{ steps.ver.outputs.ver }}.exe" > "ahtool_v${{ steps.ver.outputs.ver }}.exe.sha256"
+          cat "ahtool_v${{ steps.ver.outputs.ver }}.exe.sha256"
+
+      - name: Publish to Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.ver.outputs.tag }}"
+          VER="${{ steps.ver.outputs.ver }}"
+          EXE="bin/ahtool_v${VER}.exe"
+          SUM="${EXE}.sha256"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG 已存在，更新产物"
+            gh release upload "$TAG" "$EXE" "$SUM" --clobber
+          else
+            echo "创建 Release $TAG"
+            gh release create "$TAG" "$EXE" "$SUM" --title "ahtool $VER" --generate-notes
+          fi
